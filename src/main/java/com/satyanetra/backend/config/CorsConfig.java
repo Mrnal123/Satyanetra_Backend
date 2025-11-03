@@ -17,13 +17,17 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedOrigins(props.getFrontendOrigin(),
                         "http://localhost:3000",
                         "http://localhost:5173")
-                .allowedMethods("GET", "POST")
+                .allowedMethods("GET", "POST", "OPTIONS")
+                .allowedHeaders("*")
+                .exposedHeaders("*")
                 .allowCredentials(false)
                 .maxAge(3600);
         registry.addMapping("/health")
                 .allowedOrigins(props.getFrontendOrigin(),
                         "http://localhost:3000",
                         "http://localhost:5173")
-                .allowedMethods("GET");
+                .allowedMethods("GET", "OPTIONS")
+                .allowedHeaders("*")
+                .exposedHeaders("*");
     }
 }
