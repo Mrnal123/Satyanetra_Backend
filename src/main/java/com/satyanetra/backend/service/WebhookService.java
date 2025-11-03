@@ -17,8 +17,14 @@ import java.util.Map;
 public class WebhookService {
     private static final Logger log = LoggerFactory.getLogger(WebhookService.class);
     
-    @Value("${webhook.ifttt.url}")
-    private String iftttWebhookUrl;
+    @Value("${webhook.ifttt.event:satyanetra_analysis_complete}")
+    private String iftttEvent;
+
+    @Value("${webhook.ifttt.key:}")
+    private String iftttKey;
+
+    @Value("${webhook.ifttt.enabled:true}")
+    private boolean iftttEnabled;
     
     private final RestTemplate restTemplate;
 
@@ -29,6 +35,17 @@ public class WebhookService {
     @Async("taskExecutor")
     public void sendAnalysisComplete(String productId, int overallScore, String reason) {
         try {
+            if (!iftttEnabled) {
+                log.info("IFTTT webhook disabled; skipping for product {}", productId);
+                return;
+            }
+
+            if (iftttKey == null || iftttKey.isBlank()) {
+                log.info("IFTTT key missing; skipping webhook for product {}", productId);
+                return;
+            }
+
+            String url = "https://maker.ifttt.com/trigger/" + iftttEvent + "/with/key/" + iftttKey;
             Map<String, Object> payload = Map.of(
                 "productId", productId,
                 "overallScore", overallScore,
@@ -42,7 +59,7 @@ public class WebhookService {
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
             
             log.debug("Sending webhook to IFTTT for product {}", productId);
-            ResponseEntity<Void> response = restTemplate.postForEntity(iftttWebhookUrl, request, Void.class);
+            ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
             
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("Webhook sent successfully for product {} with score {}", productId, overallScore);
