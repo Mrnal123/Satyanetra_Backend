@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: satyanetra-backend
+    env: docker
+    plan: free
+    region: singapore
+    runtime: image
+    healthCheckPath: /health
+    autoDeploy: true
+    buildCommand: mvn -DskipTests -B package
+    startCommand: java -jar -Dserver.port=$PORT target/satyanetra-backend-0.1.0.jar
+    envVars:
+      - key: FRONTEND_ORIGIN
+        value: https://satyanetra.vercel.app
+      - key: RATE_LIMIT_PER_MIN
+        value: 3
+      - key: DEFAULT_TIMEOUT
+        value: 60
+
+# If you add PostgreSQL on Render, set these and update your Spring config
+#      - key: SPRING_DATASOURCE_URL
+#        value: ${DATABASE_URL}
+#      - key: SPRING_DATASOURCE_USERNAME
+#        value: ${DATABASE_USER}
+#      - key: SPRING_DATASOURCE_PASSWORD
+#        value: ${DATABASE_PASSWORD}
+#      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+#        value: update
