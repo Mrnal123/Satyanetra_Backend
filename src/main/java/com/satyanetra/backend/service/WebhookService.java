@@ -1,6 +1,4 @@
 package com.satyanetra.backend.service;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,7 +42,7 @@ public class WebhookService {
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
             
             log.debug("Sending webhook to IFTTT for product {}", productId);
-            ResponseEntity<String> response = restTemplate.postForEntity(iftttWebhookUrl, request, String.class);
+            ResponseEntity<Void> response = restTemplate.postForEntity(iftttWebhookUrl, request, Void.class);
             
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("Webhook sent successfully for product {} with score {}", productId, overallScore);
