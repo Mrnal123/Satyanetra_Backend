@@ -1,10 +1,10 @@
 services:
   - type: web
     name: satyanetra-backend
-    env: docker
+    env: java
     plan: free
     region: singapore
-    runtime: image
+    branch: main
     healthCheckPath: /health
     autoDeploy: true
     buildCommand: mvn -DskipTests -B package
