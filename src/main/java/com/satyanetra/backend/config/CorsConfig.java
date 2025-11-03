@@ -20,7 +20,7 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedMethods("GET", "POST", "OPTIONS")
                 .allowedHeaders("*")
                 .exposedHeaders("*")
-                .allowCredentials(false)
+                .allowCredentials(true)
                 .maxAge(3600);
         registry.addMapping("/health")
                 .allowedOrigins(props.getFrontendOrigin(),
@@ -28,6 +28,7 @@ public class CorsConfig implements WebMvcConfigurer {
                         "http://localhost:5173")
                 .allowedMethods("GET", "OPTIONS")
                 .allowedHeaders("*")
-                .exposedHeaders("*");
+                .exposedHeaders("*")
+                .allowCredentials(true);
     }
 }
