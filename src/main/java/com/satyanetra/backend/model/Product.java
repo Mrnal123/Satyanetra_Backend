@@ -9,6 +9,7 @@ public class Product {
     @Id
     private String id;
 
+    @Column(name = "url", length = 2048)
     private String url;
 
     private String name;

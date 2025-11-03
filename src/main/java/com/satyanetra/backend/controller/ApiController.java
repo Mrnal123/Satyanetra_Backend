@@ -63,13 +63,15 @@ public class ApiController {
                     .body(java.util.Map.of("error", "rate_limit_exceeded"));
         }
 
-        if (!isValidUrl(req.getUrl())) {
+        // Sanitize incoming URL (remove stray backticks and trim whitespace)
+        String incomingUrl = req.getUrl() != null ? req.getUrl().trim().replace("`", "") : null;
+        if (!isValidUrl(incomingUrl)) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "invalid_url"));
         }
 
         Product p = new Product();
         p.setId(Ids.prodId());
-        p.setUrl(req.getUrl());
+        p.setUrl(incomingUrl);
         p.setName("Product from " + req.getPlatform());
         productRepo.save(p);
 
