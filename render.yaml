@@ -1,14 +1,12 @@
 services:
   - type: web
     name: satyanetra-backend
-    env: java
+    runtime: docker
     plan: free
     region: singapore
     branch: main
     healthCheckPath: /health
     autoDeploy: true
-    buildCommand: mvn -DskipTests -B package
-    startCommand: java -jar -Dserver.port=$PORT target/satyanetra-backend-0.1.0.jar
     envVars:
       - key: FRONTEND_ORIGIN
         value: https://satyanetra.vercel.app
