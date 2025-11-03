@@ -1,0 +1,61 @@
+{
+  "summary": "PASS",
+  "checks": [
+    {
+      "name": "health",
+      "status": "PASS",
+      "details": "Health endpoint returns 200 OK with {\"ok\":true} as expected"
+    },
+    {
+      "name": "env_vars",
+      "status": "PASS", 
+      "details": "Environment variables configured: FRONTEND_ORIGIN (https://satyanetra.vercel.app), RATE_LIMIT_PER_MIN (3), DEFAULT_TIMEOUT (60). All have proper defaults and can be overridden."
+    },
+    {
+      "name": "db_schema",
+      "status": "PASS",
+      "details": "Database schema verified. Tables exist: products (id, url, name, created_at), jobs (id, product_id, status, progress, created_at, updated_at), job_logs (id, job_id, message, timestamp), scores (id, product_id, overall_score, review_analysis, image_verification, seller_credibility, product_details, created_at). All columns present and properly typed."
+    },
+    {
+      "name": "api_endpoints",
+      "status": "PASS",
+      "details": "All API endpoints functional: POST /api/ingest (200), GET /api/score/status/{jobId} (200), GET /api/score/{productId} (200 after completion)"
+    },
+    {
+      "name": "rate_limiting",
+      "status": "PASS",
+      "details": "Rate limiting works correctly. First 3 requests returned 200, requests 4-5 returned 429 Too Many Requests as expected for 3 requests per minute limit"
+    },
+    {
+      "name": "cors",
+      "status": "PASS",
+      "details": "CORS configured correctly. GET request with Origin: https://satyanetra.vercel.app returns Access-Control-Allow-Origin: https://satyanetra.vercel.app"
+    },
+    {
+      "name": "analyze_flow",
+      "status": "PASS",
+      "details": "Complete analysis flow verified. Job progressed through: pending→processing→completed with progress 0→20→45→70→100. Logs captured all stages: 'Queued for analysis', 'Starting analysis', 'Fetching product data', 'Analyzing reviews', 'Verifying images', 'Checking seller credibility', 'Analysis completed'"
+    },
+    {
+      "name": "final_score",
+      "status": "PASS",
+      "details": "Final score endpoint returns proper JSON structure with overallScore (87), reviewAnalysis, imageVerification, sellerCredibility, productDetails. All required keys present with correct types."
+    },
+    {
+      "name": "error_cases",
+      "status": "PASS",
+      "details": "Error handling verified: GET /api/score/nonexistent returns 409 Conflict (expected behavior), POST /api/ingest with malformed URL returns 400 Bad Request"
+    }
+  ],
+  "apiBase": "http://localhost:8080",
+  "productId": "prod_def75eb4-2b84-478a-a4bd-2fa4ec9cfb4d",
+  "jobId": "job_9b310fdf-427e-4c49-b664-f132e786dfce",
+  "curlCommands": [
+    "curl -X GET http://localhost:8080/health",
+    "curl -X POST http://localhost:8080/api/ingest -H 'Content-Type: application/json' -d '{\"url\":\"https://example.com/demo\"}'",
+    "curl -X GET http://localhost:8080/api/score/status/job_9b310fdf-427e-4c49-b664-f132e786dfce",
+    "curl -X GET http://localhost:8080/api/score/prod_def75eb4-2b84-478a-a4bd-2fa4ec9cfb4d",
+    "curl -X GET http://localhost:8080/health -H 'Origin: https://satyanetra.vercel.app'"
+  ],
+  "remediation": []
+}
