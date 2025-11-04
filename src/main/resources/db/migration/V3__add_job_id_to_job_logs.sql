@@ -1,0 +1,1 @@
+ALTER TABLE job_logs ADD COLUMN job_id VARCHAR(255);
