@@ -69,6 +69,18 @@ public class ApiController {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "invalid_url"));
         }
 
+        // Check if product already exists
+        Optional<Product> existingProduct = productRepo.findByUrl(incomingUrl);
+        if (existingProduct.isPresent()) {
+            Product p = existingProduct.get();
+            // Find the most recent job for this product
+            Optional<Job> existingJob = jobRepo.findFirstByProductIdOrderByIdDesc(p.getId());
+            if (existingJob.isPresent()) {
+                Job j = existingJob.get();
+                return ResponseEntity.ok(new IngestResponse(p.getId(), j.getId()));
+            }
+        }
+
         Product p = new Product();
         p.setId(Ids.prodId());
         p.setUrl(incomingUrl);
@@ -170,3 +182,4 @@ public class ApiController {
         return mapper.readTree(s);
     }
 }
+
