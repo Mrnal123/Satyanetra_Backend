@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,9 +91,9 @@ public class ApiController {
         } catch (DataIntegrityViolationException e) {
             // This happens if another request for the same URL came in at the same time.
             // In this case, we can just return the existing product and job.
-            Optional<Product> existingProduct = productRepo.findByUrl(incomingUrl);
-            if (existingProduct.isPresent()) {
-                Product existingP = existingProduct.get();
+            Optional<Product> duplicateProduct = productRepo.findByUrl(incomingUrl);
+            if (duplicateProduct.isPresent()) {
+                Product existingP = duplicateProduct.get();
                 Optional<Job> existingJob = jobRepo.findFirstByProductIdOrderByIdDesc(existingP.getId());
                 if (existingJob.isPresent()) {
                     return ResponseEntity.ok(new IngestResponse(existingP.getId(), existingJob.get().getId()));

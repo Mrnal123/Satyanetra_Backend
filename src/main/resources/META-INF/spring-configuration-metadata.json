@@ -1,0 +1,34 @@
+{
+  "properties": [
+    {
+      "name": "frontend.origin",
+      "type": "java.lang.String",
+      "description": "CORS origin for the frontend application."
+    },
+    {
+      "name": "rate.limit.per.min",
+      "type": "java.lang.Integer",
+      "description": "Rate limit for ingest endpoint per minute."
+    },
+    {
+      "name": "default.timeout",
+      "type": "java.lang.Integer",
+      "description": "Default timeout in seconds."
+    },
+    {
+      "name": "webhook.ifttt.event",
+      "type": "java.lang.String",
+      "description": "IFTTT webhook event name."
+    },
+    {
+      "name": "webhook.ifttt.key",
+      "type": "java.lang.String",
+      "description": "IFTTT webhook key."
+    },
+    {
+      "name": "webhook.ifttt.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable IFTTT webhook."
+    }
+  ]
+}
