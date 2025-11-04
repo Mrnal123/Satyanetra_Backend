@@ -13,6 +13,7 @@ public class JobLog {
     @Column(name = "job_id")
     private String jobId;
 
+    @Column(length = 1024)
     private String message;
 
     @Column(name = "timestamp")

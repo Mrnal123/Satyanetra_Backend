@@ -9,7 +9,7 @@ public class Product {
     @Id
     private String id;
 
-    @Column(name = "url", length = 2048)
+    @Column(name = "url", length = 2048, unique = true)
     private String url;
 
     private String name;
@@ -31,3 +31,4 @@ public class Product {
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }
+

@@ -85,7 +85,22 @@ public class ApiController {
         p.setId(Ids.prodId());
         p.setUrl(incomingUrl);
         p.setName("Product from " + req.getPlatform());
-        productRepo.save(p);
+        try {
+            productRepo.save(p);
+        } catch (DataIntegrityViolationException e) {
+            // This happens if another request for the same URL came in at the same time.
+            // In this case, we can just return the existing product and job.
+            Optional<Product> existingProduct = productRepo.findByUrl(incomingUrl);
+            if (existingProduct.isPresent()) {
+                Product existingP = existingProduct.get();
+                Optional<Job> existingJob = jobRepo.findFirstByProductIdOrderByIdDesc(existingP.getId());
+                if (existingJob.isPresent()) {
+                    return ResponseEntity.ok(new IngestResponse(existingP.getId(), existingJob.get().getId()));
+                }
+            }
+            // If we get here, something is wrong, so we'll just re-throw the exception.
+            throw e;
+        }
 
         Job j = new Job();
         j.setId(Ids.jobId());
@@ -182,4 +197,3 @@ public class ApiController {
         return mapper.readTree(s);
     }
 }
-
