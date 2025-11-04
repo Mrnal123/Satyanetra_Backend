@@ -13,7 +13,7 @@ import com.satyanetra.backend.service.AnalyzeProductService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,22 +31,22 @@ class ApiControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private ProductRepository productRepo;
 
-    @MockBean
+    @MockitoBean
     private JobRepository jobRepo;
 
-    @MockBean
+    @MockitoBean
     private JobLogRepository jobLogRepo;
 
-    @MockBean
+    @MockitoBean
     private ScoreRepository scoreRepo;
 
-    @MockBean
+    @MockitoBean
     private AnalyzeProductService analyzer;
 
-    @MockBean
+    @MockitoBean
     private IngestRateLimiter rateLimiter;
 
     @Autowired
