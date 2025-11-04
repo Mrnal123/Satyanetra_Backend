@@ -2,13 +2,13 @@ package com.satyanetra.backend.model;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "job_logs")
 public class JobLog {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
     @Column(name = "job_id")
     private String jobId;
@@ -21,11 +21,14 @@ public class JobLog {
 
     @PrePersist
     public void prePersist() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID();
+        }
         this.timestamp = Instant.now();
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
     public String getJobId() { return jobId; }
     public void setJobId(String jobId) { this.jobId = jobId; }
     public String getMessage() { return message; }

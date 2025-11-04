@@ -4,7 +4,8 @@ import com.satyanetra.backend.model.JobLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.UUID;
 
-public interface JobLogRepository extends JpaRepository<JobLog, Long> {
+public interface JobLogRepository extends JpaRepository<JobLog, UUID> {
     List<JobLog> findByJobIdOrderByTimestampAsc(String jobId);
-}
+}
