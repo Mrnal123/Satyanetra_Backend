@@ -9,6 +9,7 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.boot.web.context.WebServerApplicationContext;
 
 @SpringBootApplication
 public class SatyanetraBackendApplication {
@@ -22,15 +23,23 @@ public class SatyanetraBackendApplication {
         SpringApplication app = new SpringApplication(SatyanetraBackendApplication.class);
         app.setWebApplicationType(WebApplicationType.SERVLET);  // ✅ Force servlet mode
         app.run(args);
-        System.out.println("✅ Satyanetra Backend Server is up and running on port 8080");
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    public void logBoundConfiguration() {
+    public void logBoundConfiguration(ApplicationReadyEvent event) {
         String origin = appProperties.getFrontendOrigin();
         int rateLimitPerMin = appProperties.getRateLimitPerMin();
         int timeout = appProperties.getDefaultTimeoutSeconds();
 
+        int port = 0;
+        try {
+            WebServerApplicationContext ctx = (WebServerApplicationContext) event.getApplicationContext();
+            port = ctx.getWebServer().getPort();
+        } catch (Exception e) {
+            log.warn("Unable to determine server port from context: {}", e.getMessage());
+        }
+
+        log.info("✅ Server started on port {}", port);
         log.info("Config bound: frontend.origin={}, rate.limit.per.min={}, default.timeout={}", origin, rateLimitPerMin, timeout);
     }
 }

@@ -1,0 +1,141 @@
+name: Deploy to AWS Elastic Beanstalk
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+  APPLICATION_NAME: satyanetra-backend
+  ENVIRONMENT_NAME: satyanetra-backend-env
+  
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: Run tests
+      run: mvn clean test
+      
+    - name: Generate test report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: Maven Tests
+        path: target/surefire-reports/*.xml
+        reporter: java-junit
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: Build with Maven
+      run: mvn clean package -DskipTests
+      
+    - name: Generate deployment package
+      run: |
+        mkdir -p deployment
+        cp target/satyanetra-backend-0.1.0.jar deployment/
+        cp -r .ebextensions deployment/
+        cd deployment
+        zip -r ../satyanetra-backend-${{ github.sha }}.zip .
+        
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Deploy to Elastic Beanstalk
+      uses: einaregilsson/beanstalk-deploy@v21
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        application_name: ${{ env.APPLICATION_NAME }}
+        environment_name: ${{ env.ENVIRONMENT_NAME }}
+        version_label: ${{ github.sha }}
+        region: ${{ env.AWS_REGION }}
+        deployment_package: satyanetra-backend-${{ github.sha }}.zip
+        wait_for_environment_recovery: 300
+        
+    - name: Notify deployment success
+      if: success()
+      run: |
+        echo "✅ Deployment successful!"
+        echo "Application: ${{ env.APPLICATION_NAME }}"
+        echo "Environment: ${{ env.ENVIRONMENT_NAME }}"
+        echo "Version: ${{ github.sha }}"
+        
+    - name: Notify deployment failure
+      if: failure()
+      run: |
+        echo "❌ Deployment failed!"
+        echo "Check the logs above for details."
+
+  health-check:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Wait for deployment
+      run: sleep 120
+      
+    - name: Health check
+      run: |
+        # Get the environment URL from AWS
+        ENV_URL=$(aws elasticbeanstalk describe-environments \
+          --application-name ${{ env.APPLICATION_NAME }} \
+          --environment-names ${{ env.ENVIRONMENT_NAME }} \
+          --query 'Environments[0].CNAME' \
+          --output text)
+          
+        echo "Environment URL: $ENV_URL"
+        
+        # Perform health check
+        for i in {1..10}; do
+          if curl -f -s "http://$ENV_URL/health" > /dev/null; then
+            echo "✅ Health check passed!"
+            exit 0
+          fi
+          echo "Waiting for application to be ready... ($i/10)"
+          sleep 30
+        done
+        
+        echo "❌ Health check failed after 5 minutes"
+        exit 1

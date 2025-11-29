@@ -16,6 +16,7 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins(props.getFrontendOrigin(),
                         "http://localhost:3000",
+                        "http://localhost:3001",
                         "http://localhost:5173")
                 .allowedMethods("GET", "POST", "OPTIONS")
                 .allowedHeaders("*")
@@ -25,6 +26,7 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/health")
                 .allowedOrigins(props.getFrontendOrigin(),
                         "http://localhost:3000",
+                        "http://localhost:3001",
                         "http://localhost:5173")
                 .allowedMethods("GET", "OPTIONS")
                 .allowedHeaders("*")

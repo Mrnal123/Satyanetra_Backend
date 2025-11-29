@@ -20,6 +20,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.lang.NonNull;
 
@@ -115,7 +117,14 @@ public class ApiController {
         log.setMessage("Queued for analysis");
         jobLogRepo.save(log);
 
-        analyzer.analyze(j, p);
+        // Run analysis only AFTER the transaction commits to avoid race conditions
+        // with the Job insert (which previously caused duplicate INSERT attempts).
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                analyzer.analyze(j, p);
+            }
+        });
 
         return ResponseEntity.ok(new IngestResponse(p.getId(), j.getId()));
     }

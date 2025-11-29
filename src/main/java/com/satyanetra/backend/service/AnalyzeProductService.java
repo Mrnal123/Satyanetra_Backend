@@ -12,6 +12,9 @@ import com.satyanetra.backend.service.ai.ReviewSentimentAI;
 import com.satyanetra.backend.service.ai.ImageTamperAI;
 import com.satyanetra.backend.service.ai.SellerTrustAI;
 import com.satyanetra.backend.service.ai.TrustReasoner;
+import com.satyanetra.backend.fetch.ReviewFetcherService;
+import com.satyanetra.backend.fetch.ImageFetcherService;
+import com.satyanetra.backend.fetch.SellerFetcherService;
 import com.satyanetra.backend.util.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +40,9 @@ public class AnalyzeProductService {
     private final WebhookService webhookService;
     private final ObjectMapper mapper = new ObjectMapper();
     private final TransactionTemplate transactionTemplate;
+    private final ReviewFetcherService reviewFetcherService;
+    private final ImageFetcherService imageFetcherService;
+    private final SellerFetcherService sellerFetcherService;
 
     public AnalyzeProductService(JobRepository jobRepository,
                                JobLogRepository jobLogRepository,
@@ -46,6 +52,9 @@ public class AnalyzeProductService {
                                SellerTrustAI sellerTrustAI,
                                TrustReasoner trustReasoner,
                                WebhookService webhookService,
+                               ReviewFetcherService reviewFetcherService,
+                               ImageFetcherService imageFetcherService,
+                               SellerFetcherService sellerFetcherService,
                                @NonNull PlatformTransactionManager transactionManager) {
         this.jobRepository = jobRepository;
         this.jobLogRepository = jobLogRepository;
@@ -56,6 +65,9 @@ public class AnalyzeProductService {
         this.trustReasoner = trustReasoner;
         this.webhookService = webhookService;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.reviewFetcherService = reviewFetcherService;
+        this.imageFetcherService = imageFetcherService;
+        this.sellerFetcherService = sellerFetcherService;
     }
 
     @Async("taskExecutor")
@@ -80,19 +92,22 @@ public class AnalyzeProductService {
             // ReviewSentimentAI Node
             log.debug("Analyzing reviews with AI");
             updateJobProgress(job, 35, "Analyzing reviews with AI");
-            Map<String, Object> reviewAnalysis = reviewSentimentAI.analyzeReviews(product.getUrl());
+            Map<String, Object> fetchedReviews = reviewFetcherService.fetch(product.getUrl());
+            Map<String, Object> reviewAnalysis = reviewSentimentAI.analyzeReviews(product.getUrl(), fetchedReviews);
             sleep(1000);
 
             // ImageTamperAI Node
             log.debug("Verifying images with AI");
             updateJobProgress(job, 55, "Verifying images with AI");
-            Map<String, Object> imageVerification = imageTamperAI.verifyImages(product.getUrl());
+            Map<String, Object> fetchedImages = imageFetcherService.fetch(product.getUrl());
+            Map<String, Object> imageVerification = imageTamperAI.verifyImages(product.getUrl(), fetchedImages);
             sleep(1000);
 
             // SellerTrustAI Node
             log.debug("Checking seller credibility with AI");
             updateJobProgress(job, 75, "Checking seller credibility with AI");
-            Map<String, Object> sellerCredibility = sellerTrustAI.assessSellerCredibility(product.getUrl());
+            Map<String, Object> fetchedSeller = sellerFetcherService.fetch(product.getUrl());
+            Map<String, Object> sellerCredibility = sellerTrustAI.assessSellerCredibility(product.getUrl(), fetchedSeller);
             sleep(1000);
 
             // TrustReasoner Node

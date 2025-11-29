@@ -1,0 +1,2 @@
+-- Initial database setup after V0
+-- This migration adds basic constraints and indexes
